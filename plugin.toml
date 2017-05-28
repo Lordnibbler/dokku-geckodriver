@@ -1,0 +1,4 @@
+[plugin]
+description = "dokku geckodriver"
+version = "0.1.0"
+[plugin.config]

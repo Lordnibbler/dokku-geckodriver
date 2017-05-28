@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+APP="$1"; IMAGE="dokku/$APP"
+echo "-----> Installing geckodriver ..."
+COMMAND=$(cat <<EOF
+
+export DEBIAN_FRONTEND=noninteractive
+
+sudo wget https://github.com/mozilla/geckodriver/releases/download/v0.16.1/geckodriver-v0.16.1-linux64.tar.gz
+tar xfvz geckodriver-v0.16.1-linux64.tar.gz
+rm -f geckodriver-v0.16.1-linux64.tar.gz
+chmod +777 geckodriver
+mv -f geckodriver /usr/bin/geckodriver
+echo "-----> geckodriver installed!"
+
+sleep 1 # wait so that docker run has not exited before docker attach
+EOF
+)
+id=$(docker run -d $IMAGE /bin/bash -e -c "$COMMAND")
+#enable logs
+docker attach $id
+test $(docker wait $id) -eq 0
+docker commit $id $IMAGE > /dev/null
